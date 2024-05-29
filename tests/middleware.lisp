@@ -67,12 +67,14 @@
                                            :max-open-count 2
                                            :max-idle-count 4
                                            :timeout 0))))
+                   (failure-lock (bt2:make-lock))
                    (failure-count 0))
                (flet ((make-thread ()
                         (bt2:make-thread (lambda ()
                                            (let ((response (funcall app ())))
                                              (when (= 503 (first response))
-                                               (incf failure-count))
+                                               (bt2:with-lock-held (failure-lock)
+                                                 (incf failure-count)))
                                              response)))))
                  (let ((threads (list (make-thread)
                                       (make-thread)
@@ -102,12 +104,14 @@
                                    :max-open-count 2
                                    :max-idle-count 4
                                    :timeout 10000))))
+           (failure-lock (bt2:make-lock))
            (failure-count 0))
        (flet ((make-thread ()
                 (bt2:make-thread (lambda ()
                                    (let ((response (funcall app ())))
                                      (when (= 503 (first response))
-                                       (incf failure-count))
+                                       (bt2:with-lock-held (failure-lock)
+                                         (incf failure-count)))
                                      response)))))
          (let ((threads (list (make-thread)
                               (make-thread)
