@@ -99,7 +99,8 @@
                             (lambda (condition)
                               (declare (type anypool:too-many-open-connection condition))
                               (and on-too-many-open-connections
-                                   (funcall on-too-many-open-connections condition))
+                                   (funcall (the function on-too-many-open-connections)
+                                            condition))
                               (return
                                 `(503
                                   (:content-type "text/plain"
